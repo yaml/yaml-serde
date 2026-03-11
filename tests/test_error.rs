@@ -416,6 +416,37 @@ fn test_finite_recursion_arrays() {
 
 #[cfg(not(miri))]
 #[test]
+fn test_deeply_nested_flow_collection() {
+    // Regression test for https://github.com/yaml/yaml-serde/issues/1
+    // Deeply nested flow collections used to cause O(n²) parsing time.
+    // With the loader depth limit, this returns an error quickly.
+    let n = 10_000;
+    let yaml = r#"{"":["#.repeat(n) + &"]}".repeat(n);
+    let begin = std::time::Instant::now();
+    let result = yaml_serde::from_str::<serde::de::IgnoredAny>(&yaml);
+    let elapsed = begin.elapsed();
+    assert!(result.is_err(), "expected recursion limit error");
+    let err = result.unwrap_err().to_string();
+    assert!(
+        err.contains("recursion limit exceeded"),
+        "unexpected error: {err}",
+    );
+    // Should complete nearly instantly, not in seconds.
+    assert!(
+        elapsed.as_millis() < 1000,
+        "took too long: {elapsed:?}",
+    );
+}
+
+#[cfg(not(miri))]
+#[test]
+fn test_nesting_at_depth_limit() {
+    let yaml = "[".repeat(128) + &"]".repeat(128);
+    yaml_serde::from_str::<serde::de::IgnoredAny>(&yaml).unwrap();
+}
+
+#[cfg(not(miri))]
+#[test]
 fn test_billion_laughs() {
     #[derive(Debug)]
     struct X;
