@@ -6,9 +6,6 @@ include $M/yamlscript.mk
 include $M/clean.mk
 include $M/shell.mk
 
-# Override CARGO from rust.mk (it incorrectly points to rustup)
-CARGO := $(CARGO-BIN)/cargo
-
 MAKES-CLEAN := \
   target \
   Cargo.lock \
@@ -27,6 +24,7 @@ RELEASE-UTIL := $(ROOT)/util/release
 SECRETS-FILE := $(HOME)/.yaml-serde-secrets.yaml
 
 RELEASE-STEPS := \
+  $(CARGO) \
   release-check \
   release-bump \
   release-tag \
