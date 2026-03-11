@@ -5,7 +5,7 @@ use std::io;
 use std::mem::{self, MaybeUninit};
 use std::ptr::{self, addr_of_mut};
 use std::slice;
-use unsafe_libyaml as sys;
+use libyaml_rs as sys;
 
 #[derive(Debug)]
 pub(crate) enum Error {
