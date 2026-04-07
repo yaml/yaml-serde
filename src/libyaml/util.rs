@@ -1,7 +1,8 @@
-use std::marker::PhantomData;
-use std::mem::{self, MaybeUninit};
-use std::ops::Deref;
-use std::ptr::{addr_of, NonNull};
+use alloc::boxed::Box;
+use core::marker::PhantomData;
+use core::mem::{self, MaybeUninit};
+use core::ops::Deref;
+use core::ptr::{addr_of, NonNull};
 
 pub(crate) struct Owned<T, Init = T> {
     ptr: NonNull<T>,

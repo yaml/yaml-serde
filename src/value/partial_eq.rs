@@ -1,3 +1,4 @@
+use alloc::string::String;
 use crate::Value;
 
 impl PartialEq<str> for Value {

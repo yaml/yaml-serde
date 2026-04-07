@@ -1,3 +1,7 @@
+#[cfg(feature = "std")]
+use alloc::boxed::Box;
+use alloc::sync::Arc;
+use alloc::{format, vec::Vec};
 use crate::error::{self, Error, ErrorImpl};
 use crate::libyaml::error::Mark;
 use crate::libyaml::parser::{MappingStart, Scalar, ScalarStyle, SequenceStart};
@@ -6,16 +10,17 @@ use crate::loader::{Document, Loader};
 use crate::path::Path;
 use serde::de::value::StrDeserializer;
 use serde::de::{
-    self, Deserialize, DeserializeOwned, DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
+    self, Deserialize, DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
 };
-use std::fmt;
-use std::io;
-use std::mem;
-use std::num::ParseIntError;
-use std::str;
-use std::sync::Arc;
+use core::fmt;
+use core::mem;
+use core::num::ParseIntError;
+use core::str;
 
-type Result<T, E = Error> = std::result::Result<T, E>;
+#[cfg(feature = "std")]
+use serde::de::DeserializeOwned;
+
+type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// A structure that deserializes YAML into Rust values.
 ///
@@ -62,7 +67,8 @@ pub struct Deserializer<'de> {
 pub(crate) enum Progress<'de> {
     Str(&'de str),
     Slice(&'de [u8]),
-    Read(Box<dyn io::Read + 'de>),
+    #[cfg(feature = "std")]
+    Read(Box<dyn crate::io::Read + 'de>),
     Iterable(Loader<'de>),
     Document(Document<'de>),
     Fail(Arc<ErrorImpl>),
@@ -86,9 +92,10 @@ impl<'de> Deserializer<'de> {
     /// Reader-based deserializers do not support deserializing borrowed types
     /// like `&str`, since the `std::io::Read` trait has no non-copying methods
     /// -- everything it does involves copying bytes out of the data source.
+    #[cfg(feature = "std")]
     pub fn from_reader<R>(rdr: R) -> Self
     where
-        R: io::Read + 'de,
+        R: crate::io::Read + 'de,
     {
         let progress = Progress::Read(Box::new(rdr));
         Deserializer { progress }
@@ -1817,9 +1824,10 @@ where
 /// is wrong with the data, for example required struct fields are missing from
 /// the YAML map or some number is too big to fit in the expected primitive
 /// type.
+#[cfg(feature = "std")]
 pub fn from_reader<R, T>(rdr: R) -> Result<T>
 where
-    R: io::Read,
+    R: crate::io::Read,
     T: DeserializeOwned,
 {
     T::deserialize(Deserializer::from_reader(rdr))

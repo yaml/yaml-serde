@@ -2,20 +2,24 @@
 //!
 //! This module provides YAML serialization with the type `Serializer`.
 
+use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use crate::error::{self, Error, ErrorImpl};
+use crate::io;
 use crate::libyaml;
 use crate::libyaml::emitter::{Emitter, Event, Mapping, Scalar, ScalarStyle, Sequence};
 use crate::value::tagged::{self, MaybeTag};
 use serde::de::Visitor;
 use serde::ser::{self, Serializer as _};
-use std::fmt::{self, Display};
-use std::io;
-use std::marker::PhantomData;
-use std::mem;
-use std::num;
-use std::str;
+use core::fmt::{self, Display};
+use core::marker::PhantomData;
+use core::mem;
+use core::num;
+use core::str;
 
-type Result<T, E = Error> = std::result::Result<T, E>;
+type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// A structure for serializing Rust values into YAML.
 ///

@@ -1,11 +1,14 @@
+use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::string::ToString;
 use crate::error::{self, Error, ErrorImpl};
 use crate::value::tagged::{self, MaybeTag};
 use crate::value::{to_value, Mapping, Number, Sequence, Tag, TaggedValue, Value};
+use core::fmt::Display;
+use core::mem;
 use serde::ser::{self, Serialize};
-use std::fmt::Display;
-use std::mem;
 
-type Result<T, E = Error> = std::result::Result<T, E>;
+type Result<T, E = Error> = core::result::Result<T, E>;
 
 impl Serialize for Value {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

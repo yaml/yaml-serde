@@ -119,6 +119,7 @@
 //! }
 //! ```
 
+#![no_std]
 #![doc(html_root_url = "https://docs.rs/yaml_serde/0.10.4")]
 #![deny(missing_docs, unsafe_op_in_unsafe_fn)]
 // Suppressed clippy_pedantic lints
@@ -164,7 +165,14 @@
     clippy::must_use_candidate,
 )]
 
-pub use crate::de::{from_reader, from_slice, from_str, Deserializer};
+#[cfg(feature = "std")]
+extern crate std;
+
+extern crate alloc;
+
+#[cfg(feature = "std")]
+pub use crate::de::from_reader;
+pub use crate::de::{from_slice, from_str, Deserializer};
 pub use crate::error::{Error, Location, Result};
 pub use crate::ser::{to_string, to_writer, Serializer};
 #[doc(inline)]
@@ -175,6 +183,7 @@ pub use crate::mapping::Mapping;
 
 mod de;
 mod error;
+pub mod io;
 mod libyaml;
 mod loader;
 pub mod mapping;
@@ -186,6 +195,7 @@ pub mod with;
 
 // Prevent downstream code from implementing the Index trait.
 mod private {
+    use alloc::string::String;
     pub trait Sealed {}
     impl Sealed for usize {}
     impl Sealed for str {}

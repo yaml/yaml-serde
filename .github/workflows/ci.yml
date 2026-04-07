@@ -75,6 +75,17 @@ jobs:
       env:
         MIRIFLAGS: -Zmiri-strict-provenance
 
+  no_std:
+    name: No default features (no_std)
+    needs: pre_ci
+    if: needs.pre_ci.outputs.continue
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - run: cargo check --no-default-features
+
   minimal:
     name: Minimal versions
     needs: pre_ci

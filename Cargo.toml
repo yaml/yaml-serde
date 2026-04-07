@@ -11,11 +11,15 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/yaml/yaml-serde"
 rust-version = "1.82"
 
+[features]
+default = ["std"]
+std = ["serde/std", "indexmap/std"]
+
 [dependencies]
-indexmap = "2.2.1"
+indexmap = { version = "2.2.1", default-features = false }
 itoa = "1.0"
 ryu = "1.0"
-serde = "1.0.195"
+serde = { version = "1.0.195", default-features = false, features = ["alloc"] }
 libyaml-rs = "0.3"
 
 [dev-dependencies]

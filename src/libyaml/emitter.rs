@@ -1,10 +1,12 @@
+use alloc::boxed::Box;
+use alloc::string::String;
+use crate::io;
 use crate::libyaml;
 use crate::libyaml::util::Owned;
-use std::ffi::c_void;
-use std::io;
-use std::mem::{self, MaybeUninit};
-use std::ptr::{self, addr_of_mut};
-use std::slice;
+use core::ffi::c_void;
+use core::mem::{self, MaybeUninit};
+use core::ptr::{self, addr_of_mut};
+use core::slice;
 use libyaml_rs as sys;
 
 #[derive(Debug)]
@@ -181,7 +183,7 @@ impl<'a> Emitter<'a> {
     }
 
     pub fn into_inner(self) -> Box<dyn io::Write + 'a> {
-        let sink = Box::new(io::sink());
+        let sink: Box<dyn io::Write> = Box::new(io::sink());
         unsafe { mem::replace(&mut (*self.pin.ptr).write, sink) }
     }
 
@@ -209,6 +211,7 @@ unsafe fn write_handler(data: *mut c_void, buffer: *mut u8, size: u64) -> i32 {
         }
     }
 }
+
 
 impl Drop for EmitterPinned<'_> {
     fn drop(&mut self) {

@@ -1,10 +1,10 @@
 use crate::libyaml::cstr::CStr;
-use std::fmt::{self, Debug, Display};
-use std::mem::MaybeUninit;
-use std::ptr::NonNull;
+use core::fmt::{self, Debug, Display};
+use core::mem::MaybeUninit;
+use core::ptr::NonNull;
 use libyaml_rs as sys;
 
-pub(crate) type Result<T> = std::result::Result<T, Error>;
+pub(crate) type Result<T> = core::result::Result<T, Error>;
 
 pub(crate) struct Error {
     kind: sys::yaml_error_type_t,
