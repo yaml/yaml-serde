@@ -1,18 +1,64 @@
 //! A YAML mapping and its iterator types.
 
+use alloc::string::String;
+use alloc::vec::Vec;
 use crate::{private, Value};
+use core::cmp::Ordering;
+use core::fmt::{self, Display};
+use core::hash::{Hash, Hasher};
+use core::mem;
 use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer, Serialize};
-use std::cmp::Ordering;
+
+#[cfg(feature = "std")]
 use std::collections::hash_map::DefaultHasher;
-use std::fmt::{self, Display};
-use std::hash::{Hash, Hasher};
-use std::mem;
+
+#[cfg(not(feature = "std"))]
+mod fnv {
+    use core::hash::Hasher;
+
+    pub struct FnvHasher(u64);
+
+    impl FnvHasher {
+        pub fn new() -> Self {
+            FnvHasher(0xcbf2_9ce4_8422_2325)
+        }
+    }
+
+    impl Hasher for FnvHasher {
+        fn finish(&self) -> u64 {
+            self.0
+        }
+
+        fn write(&mut self, bytes: &[u8]) {
+            for &b in bytes {
+                self.0 ^= u64::from(b);
+                self.0 = self.0.wrapping_mul(0x0100_0000_01b3);
+            }
+        }
+    }
+
+    #[derive(Clone, Default)]
+    pub struct FnvBuildHasher;
+
+    impl core::hash::BuildHasher for FnvBuildHasher {
+        type Hasher = FnvHasher;
+        fn build_hasher(&self) -> FnvHasher {
+            FnvHasher::new()
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+type MapImpl = IndexMap<Value, Value>;
+
+#[cfg(not(feature = "std"))]
+type MapImpl = IndexMap<Value, Value, fnv::FnvBuildHasher>;
 
 /// A YAML mapping in which the keys and values are both `yaml_serde::Value`.
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct Mapping {
-    map: IndexMap<Value, Value>,
+    map: MapImpl,
 }
 
 impl Mapping {
@@ -26,7 +72,10 @@ impl Mapping {
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Mapping {
+            #[cfg(feature = "std")]
             map: IndexMap::with_capacity(capacity),
+            #[cfg(not(feature = "std"))]
+            map: IndexMap::with_capacity_and_hasher(capacity, fnv::FnvBuildHasher),
         }
     }
 
@@ -389,7 +438,10 @@ impl Hash for Mapping {
         // Hash the kv pairs in a way that is not sensitive to their order.
         let mut xor = 0;
         for (k, v) in self {
+            #[cfg(feature = "std")]
             let mut hasher = DefaultHasher::new();
+            #[cfg(not(feature = "std"))]
+            let mut hasher = fnv::FnvHasher::new();
             k.hash(&mut hasher);
             v.hash(&mut hasher);
             xor ^= hasher.finish();
@@ -480,7 +532,7 @@ impl PartialOrd for Mapping {
     }
 }
 
-impl<I> std::ops::Index<I> for Mapping
+impl<I> core::ops::Index<I> for Mapping
 where
     I: Index,
 {
@@ -493,7 +545,7 @@ where
     }
 }
 
-impl<I> std::ops::IndexMut<I> for Mapping
+impl<I> core::ops::IndexMut<I> for Mapping
 where
     I: Index,
 {

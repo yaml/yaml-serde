@@ -1,3 +1,5 @@
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use crate::{Mapping, Value};
 
 // Implement a bunch of conversion to make it easier to create YAML values
@@ -69,7 +71,7 @@ impl From<&str> for Value {
     }
 }
 
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 impl<'a> From<Cow<'a, str>> for Value {
     /// Convert copy-on-write string to `Value`

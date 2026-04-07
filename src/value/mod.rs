@@ -8,11 +8,14 @@ mod partial_eq;
 mod ser;
 pub(crate) mod tagged;
 
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
 use crate::error::{self, Error, ErrorImpl};
+use core::hash::{Hash, Hasher};
+use core::mem;
 use serde::de::{Deserialize, DeserializeOwned, IntoDeserializer};
 use serde::Serialize;
-use std::hash::{Hash, Hasher};
-use std::mem;
 
 pub use self::index::Index;
 pub use self::ser::Serializer;

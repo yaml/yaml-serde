@@ -1,3 +1,4 @@
 /.cache/
 /target/
 /Cargo.lock
+rust_out

@@ -1,6 +1,7 @@
+use alloc::boxed::Box;
 use crate::libyaml::cstr;
-use std::fmt::{self, Debug};
-use std::ops::Deref;
+use core::fmt::{self, Debug};
+use core::ops::Deref;
 
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
 pub(crate) struct Tag(pub(in crate::libyaml) Box<[u8]>);

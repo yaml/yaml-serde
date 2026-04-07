@@ -1,16 +1,18 @@
+use alloc::borrow::ToOwned;
+use alloc::string::String;
 use crate::value::de::{MapDeserializer, MapRefDeserializer, SeqDeserializer, SeqRefDeserializer};
 use crate::value::Value;
 use crate::Error;
+use core::cmp::Ordering;
+use core::fmt::{self, Debug, Display};
+use core::hash::{Hash, Hasher};
+use core::mem;
 use serde::de::value::{BorrowedStrDeserializer, StrDeserializer};
 use serde::de::{
     Deserialize, DeserializeSeed, Deserializer, EnumAccess, Error as _, VariantAccess, Visitor,
 };
 use serde::forward_to_deserialize_any;
 use serde::ser::{Serialize, SerializeMap, Serializer};
-use std::cmp::Ordering;
-use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
-use std::mem;
 
 /// A representation of YAML's `!Tag` syntax, used for enums.
 ///

@@ -1,7 +1,9 @@
+use alloc::borrow::ToOwned;
+use alloc::string::String;
 use crate::mapping::Entry;
 use crate::{mapping, private, Mapping, Value};
-use std::fmt::{self, Debug};
-use std::ops;
+use core::fmt::{self, Debug};
+use core::ops;
 
 /// A type that can be used to index into a `yaml_serde::Value`. See the `get`
 /// and `get_mut` methods of `Value`.

@@ -1,10 +1,11 @@
+use alloc::borrow::Cow;
+use alloc::collections::BTreeMap;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 use crate::de::{Event, Progress};
 use crate::error::{self, Error, ErrorImpl, Result};
 use crate::libyaml::error::Mark;
 use crate::libyaml::parser::{Event as YamlEvent, Parser};
-use std::borrow::Cow;
-use std::collections::BTreeMap;
-use std::sync::Arc;
 
 pub(crate) struct Loader<'input> {
     parser: Option<Parser<'input>>,
@@ -23,6 +24,7 @@ impl<'input> Loader<'input> {
         let input = match progress {
             Progress::Str(s) => Cow::Borrowed(s.as_bytes()),
             Progress::Slice(bytes) => Cow::Borrowed(bytes),
+            #[cfg(feature = "std")]
             Progress::Read(mut rdr) => {
                 let mut buffer = Vec::new();
                 if let Err(io_error) = rdr.read_to_end(&mut buffer) {

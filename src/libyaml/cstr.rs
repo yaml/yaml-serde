@@ -1,8 +1,8 @@
-use std::fmt::{self, Debug, Display, Write as _};
-use std::marker::PhantomData;
-use std::ptr::NonNull;
-use std::slice;
-use std::str;
+use core::fmt::{self, Debug, Display, Write as _};
+use core::marker::PhantomData;
+use core::ptr::NonNull;
+use core::slice;
+use core::str;
 
 #[derive(Copy, Clone)]
 pub(crate) struct CStr<'a> {

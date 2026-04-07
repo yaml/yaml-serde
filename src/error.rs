@@ -1,12 +1,13 @@
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::sync::Arc;
+use crate::io;
 use crate::libyaml::{emitter, error as libyaml};
 use crate::path::Path;
+use core::error::Error as StdError;
+use core::fmt::{self, Debug, Display};
+use core::result;
 use serde::{de, ser};
-use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
-use std::io;
-use std::result;
-use std::string;
-use std::sync::Arc;
 
 /// An error that happened serializing or deserializing YAML data.
 pub struct Error(Box<ErrorImpl>);
@@ -20,7 +21,7 @@ pub(crate) enum ErrorImpl {
 
     Libyaml(libyaml::Error),
     Io(io::Error),
-    FromUtf8(string::FromUtf8Error),
+    FromUtf8(alloc::string::FromUtf8Error),
 
     EndOfStream,
     MoreThanOneDocument,

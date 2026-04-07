@@ -1,12 +1,13 @@
+use alloc::borrow::Cow;
+use alloc::boxed::Box;
 use crate::libyaml::cstr::{self, CStr};
 use crate::libyaml::error::{Error, Mark, Result};
 use crate::libyaml::tag::Tag;
 use crate::libyaml::util::Owned;
-use std::borrow::Cow;
-use std::fmt::{self, Debug};
-use std::mem::MaybeUninit;
-use std::ptr::{addr_of_mut, NonNull};
-use std::slice;
+use core::fmt::{self, Debug};
+use core::mem::MaybeUninit;
+use core::ptr::{addr_of_mut, NonNull};
+use core::slice;
 use libyaml_rs as sys;
 
 pub(crate) struct Parser<'input> {

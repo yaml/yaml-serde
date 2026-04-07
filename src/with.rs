@@ -73,7 +73,10 @@
 ///   value: 1
 /// ```
 pub mod singleton_map {
+    use alloc::borrow::ToOwned;
+    use alloc::string::String;
     use crate::value::{Mapping, Sequence, Value};
+    use core::fmt::{self, Display};
     use serde::de::{
         self, Deserialize, DeserializeSeed, Deserializer, EnumAccess, IgnoredAny, MapAccess,
         Unexpected, VariantAccess, Visitor,
@@ -81,7 +84,6 @@ pub mod singleton_map {
     use serde::ser::{
         self, Serialize, SerializeMap, SerializeStructVariant, SerializeTupleVariant, Serializer,
     };
-    use std::fmt::{self, Display};
 
     #[allow(missing_docs)]
     pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -933,7 +935,11 @@ pub mod singleton_map {
 /// }
 /// ```
 pub mod singleton_map_recursive {
+    use alloc::borrow::ToOwned;
+    use alloc::string::String;
+    use alloc::vec::Vec;
     use crate::value::{Mapping, Sequence, Value};
+    use core::fmt::{self, Display};
     use serde::de::{
         self, Deserialize, DeserializeSeed, Deserializer, EnumAccess, IgnoredAny, MapAccess,
         SeqAccess, Unexpected, VariantAccess, Visitor,
@@ -942,7 +948,6 @@ pub mod singleton_map_recursive {
         self, Serialize, SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant,
         SerializeTuple, SerializeTupleStruct, SerializeTupleVariant, Serializer,
     };
-    use std::fmt::{self, Display};
 
     #[allow(missing_docs)]
     pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
