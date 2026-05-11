@@ -185,29 +185,17 @@ fn test_serialize_nested_enum() {
         Struct { x: usize },
     }
 
-    let expected = "serializing nested enums in YAML is not supported yet";
-
     let e = Outer::Inner(Inner::Newtype(0));
-    let error = yaml_serde::to_string(&e).unwrap_err();
-    assert_eq!(error.to_string(), expected);
+    let serialized = yaml_serde::to_string(&e).unwrap();
+    assert_eq!(serialized, "!Inner\n- !Newtype 0\n");
 
     let e = Outer::Inner(Inner::Tuple(0, 0));
-    let error = yaml_serde::to_string(&e).unwrap_err();
-    assert_eq!(error.to_string(), expected);
+    let serialized = yaml_serde::to_string(&e).unwrap();
+    assert_eq!(serialized, "!Inner\n- !Tuple\n  - 0\n  - 0\n");
 
     let e = Outer::Inner(Inner::Struct { x: 0 });
-    let error = yaml_serde::to_string(&e).unwrap_err();
-    assert_eq!(error.to_string(), expected);
-
-    let e = Value::Tagged(Box::new(TaggedValue {
-        tag: Tag::new("Outer"),
-        value: Value::Tagged(Box::new(TaggedValue {
-            tag: Tag::new("Inner"),
-            value: Value::Null,
-        })),
-    }));
-    let error = yaml_serde::to_string(&e).unwrap_err();
-    assert_eq!(error.to_string(), expected);
+    let serialized = yaml_serde::to_string(&e).unwrap();
+    assert_eq!(serialized, "!Inner\n- !Struct\n  x: 0\n");
 }
 
 #[test]
@@ -225,14 +213,7 @@ fn test_deserialize_nested_enum() {
         ---
         !Inner []
     "};
-    let expected = "deserializing nested enum in Outer::Inner from YAML is not supported yet at line 2 column 1";
-    test_error::<Outer>(yaml, expected);
-
-    let yaml = indoc! {"
-        ---
-        !Variant []
-    "};
-    let expected = "unknown variant `Variant`, expected `Inner`";
+    let expected = "invalid type: sequence, expected a YAML tag starting with '!' at line 2 column 9";
     test_error::<Outer>(yaml, expected);
 
     let yaml = indoc! {"

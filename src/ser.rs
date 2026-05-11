@@ -43,6 +43,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// ```
 pub struct Serializer<W> {
     depth: usize,
+    pending_sequence_ends: usize,
     state: State,
     emitter: Emitter<'static>,
     writer: PhantomData<W>,
@@ -69,6 +70,7 @@ where
         emitter.emit(Event::StreamStart).unwrap();
         Serializer {
             depth: 0,
+            pending_sequence_ends: 0,
             state: State::NothingInParticular,
             emitter,
             writer: PhantomData,
@@ -153,6 +155,14 @@ where
             self.state = state;
             None
         }
+    }
+
+    fn flush_pending_sequence_ends(&mut self) -> Result<()> {
+        while self.pending_sequence_ends > 0 {
+            self.emit_sequence_end()?;
+            self.pending_sequence_ends -= 1;
+        }
+        Ok(())
     }
 
     fn flush_mapping_start(&mut self) -> Result<()> {
@@ -414,7 +424,10 @@ where
         T: ?Sized + ser::Serialize,
     {
         if let State::FoundTag(_) = self.state {
-            return Err(error::new(ErrorImpl::SerializeNestedEnum));
+            self.emit_sequence_start()?;
+            self.state = State::FoundTag(variant.to_owned());
+            value.serialize(&mut *self)?;
+            return self.emit_sequence_end();
         }
         self.state = State::FoundTag(variant.to_owned());
         value.serialize(&mut *self)
@@ -458,7 +471,8 @@ where
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant> {
         if let State::FoundTag(_) = self.state {
-            return Err(error::new(ErrorImpl::SerializeNestedEnum));
+            self.emit_sequence_start()?;
+            self.pending_sequence_ends += 1;
         }
         self.state = State::FoundTag(variant.to_owned());
         self.emit_sequence_start()?;
@@ -492,7 +506,8 @@ where
         _len: usize,
     ) -> Result<Self::SerializeStructVariant> {
         if let State::FoundTag(_) = self.state {
-            return Err(error::new(ErrorImpl::SerializeNestedEnum));
+            self.emit_sequence_start()?;
+            self.pending_sequence_ends += 1;
         }
         self.state = State::FoundTag(variant.to_owned());
         self.emit_mapping_start()?;
@@ -508,7 +523,10 @@ where
                 MaybeTag::NotTag(string) => string,
                 MaybeTag::Tag(string) => {
                     return if let State::CheckForDuplicateTag = self.state {
-                        Err(error::new(ErrorImpl::SerializeNestedEnum))
+                        self.emit_sequence_start()?;
+                        self.pending_sequence_ends += 1;
+                        self.state = State::FoundTag(string);
+                        Ok(())
                     } else {
                         self.state = State::FoundTag(string);
                         Ok(())
@@ -595,7 +613,8 @@ where
     }
 
     fn end(self) -> Result<()> {
-        self.emit_sequence_end()
+        self.emit_sequence_end()?;
+        self.flush_pending_sequence_ends()
     }
 }
 
@@ -643,7 +662,7 @@ where
             self.emit_mapping_end()?;
         }
         self.state = State::NothingInParticular;
-        Ok(())
+        self.flush_pending_sequence_ends()
     }
 }
 
@@ -683,7 +702,8 @@ where
     }
 
     fn end(self) -> Result<()> {
-        self.emit_mapping_end()
+        self.emit_mapping_end()?;
+        self.flush_pending_sequence_ends()
     }
 }
 

@@ -441,6 +441,7 @@ struct DeserializerFromEvents<'de, 'document> {
 struct CurrentEnum<'document> {
     name: Option<&'static str>,
     tag: &'document str,
+    pos: usize,
 }
 
 impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
@@ -742,6 +743,7 @@ struct EnumAccess<'de, 'document, 'variant> {
     de: &'variant mut DeserializerFromEvents<'de, 'document>,
     name: Option<&'static str>,
     tag: &'document str,
+    pos: usize,
 }
 
 impl<'de, 'variant> de::EnumAccess<'de> for EnumAccess<'de, '_, 'variant> {
@@ -763,6 +765,7 @@ impl<'de, 'variant> de::EnumAccess<'de> for EnumAccess<'de, '_, 'variant> {
             current_enum: Some(CurrentEnum {
                 name: self.name,
                 tag: self.tag,
+                pos: self.pos,
             }),
         };
         Ok((variant, visitor))
@@ -1205,11 +1208,18 @@ impl<'de> de::Deserializer<'de> for &mut DeserializerFromEvents<'de, '_> {
     where
         V: Visitor<'de>,
     {
-        let tagged_already = self.current_enum.is_some();
+        let current_enum = self.current_enum;
+        let pos = *self.pos;
         let (next, mark) = self.next_event_mark()?;
-        fn enum_tag(tag: Option<&Tag>, tagged_already: bool) -> Option<&str> {
-            if tagged_already {
-                return None;
+        fn enum_tag<'a>(
+            tag: Option<&'a Tag>,
+            current_enum: Option<CurrentEnum<'a>>,
+            pos: usize,
+        ) -> Option<&'a str> {
+            if let Some(ce) = current_enum {
+                if ce.pos == pos {
+                    return None;
+                }
             }
             parse_tag(tag)
         }
@@ -1217,34 +1227,37 @@ impl<'de> de::Deserializer<'de> for &mut DeserializerFromEvents<'de, '_> {
             match next {
                 Event::Alias(mut pos) => break self.jump(&mut pos)?.deserialize_any(visitor),
                 Event::Scalar(scalar) => {
-                    if let Some(tag) = enum_tag(scalar.tag.as_ref(), tagged_already) {
+                    if let Some(tag) = enum_tag(scalar.tag.as_ref(), current_enum, pos) {
                         *self.pos -= 1;
                         break visitor.visit_enum(EnumAccess {
                             de: self,
                             name: None,
                             tag,
+                            pos,
                         });
                     }
-                    break visit_scalar(visitor, scalar, tagged_already);
+                    break visit_scalar(visitor, scalar, current_enum.is_some());
                 }
                 Event::SequenceStart(sequence) => {
-                    if let Some(tag) = enum_tag(sequence.tag.as_ref(), tagged_already) {
+                    if let Some(tag) = enum_tag(sequence.tag.as_ref(), current_enum, pos) {
                         *self.pos -= 1;
                         break visitor.visit_enum(EnumAccess {
                             de: self,
                             name: None,
                             tag,
+                            pos,
                         });
                     }
                     break self.visit_sequence(visitor, mark);
                 }
                 Event::MappingStart(mapping) => {
-                    if let Some(tag) = enum_tag(mapping.tag.as_ref(), tagged_already) {
+                    if let Some(tag) = enum_tag(mapping.tag.as_ref(), current_enum, pos) {
                         *self.pos -= 1;
                         break visitor.visit_enum(EnumAccess {
                             de: self,
                             name: None,
                             tag,
+                            pos,
                         });
                     }
                     break self.visit_mapping(visitor, mark);
@@ -1707,26 +1720,40 @@ impl<'de> de::Deserializer<'de> for &mut DeserializerFromEvents<'de, '_> {
     where
         V: Visitor<'de>,
     {
+        let current_pos = *self.pos;
         let (next, mark) = self.peek_event_mark()?;
         loop {
             if let Some(current_enum) = self.current_enum {
-                if let Event::Scalar(scalar) = next {
-                    if !scalar.value.is_empty() {
-                        break visitor.visit_enum(UnitVariantAccess { de: self });
+                if current_enum.pos == current_pos {
+                    match next {
+                        Event::Scalar(scalar) => {
+                            if !scalar.value.is_empty() {
+                                break visitor.visit_enum(UnitVariantAccess { de: self });
+                            }
+                        }
+                        Event::SequenceStart(_) => {
+                            *self.pos += 1;
+                            let value = self.deserialize_enum(name, variants, visitor)?;
+                            if let Event::SequenceEnd = self.peek_event()? {
+                                *self.pos += 1;
+                            }
+                            return Ok(value);
+                        }
+                        _ => {}
                     }
+                    let message = if let Some(name) = current_enum.name {
+                        format!(
+                            "deserializing nested enum in {}::{} from YAML is not supported yet",
+                            name, current_enum.tag,
+                        )
+                    } else {
+                        format!(
+                            "deserializing nested enum in !{} from YAML is not supported yet",
+                            current_enum.tag,
+                        )
+                    };
+                    break Err(error::new(ErrorImpl::Message(message, None)));
                 }
-                let message = if let Some(name) = current_enum.name {
-                    format!(
-                        "deserializing nested enum in {}::{} from YAML is not supported yet",
-                        name, current_enum.tag,
-                    )
-                } else {
-                    format!(
-                        "deserializing nested enum in !{} from YAML is not supported yet",
-                        current_enum.tag,
-                    )
-                };
-                break Err(error::new(ErrorImpl::Message(message, None)));
             }
             break match next {
                 Event::Alias(mut pos) => {
@@ -1740,6 +1767,7 @@ impl<'de> de::Deserializer<'de> for &mut DeserializerFromEvents<'de, '_> {
                             de: self,
                             name: Some(name),
                             tag,
+                            pos: current_pos,
                         });
                     }
                     visitor.visit_enum(UnitVariantAccess { de: self })
@@ -1750,6 +1778,7 @@ impl<'de> de::Deserializer<'de> for &mut DeserializerFromEvents<'de, '_> {
                             de: self,
                             name: Some(name),
                             tag,
+                            pos: current_pos,
                         });
                     }
                     let err =
@@ -1762,14 +1791,27 @@ impl<'de> de::Deserializer<'de> for &mut DeserializerFromEvents<'de, '_> {
                             de: self,
                             name: Some(name),
                             tag,
+                            pos: current_pos,
                         });
                     }
                     let err =
                         de::Error::invalid_type(Unexpected::Seq, &"a YAML tag starting with '!'");
                     Err(error::fix_mark(err, mark, self.path))
                 }
-                Event::SequenceEnd => panic!("unexpected end of sequence"),
-                Event::MappingEnd => panic!("unexpected end of mapping"),
+                Event::SequenceEnd => {
+                    let err = de::Error::invalid_type(
+                        Unexpected::Seq,
+                        &"a YAML tag starting with '!'",
+                    );
+                    Err(error::fix_mark(err, mark, self.path))
+                }
+                Event::MappingEnd => {
+                    let err = de::Error::invalid_type(
+                        Unexpected::Map,
+                        &"a YAML tag starting with '!'",
+                    );
+                    Err(error::fix_mark(err, mark, self.path))
+                }
                 Event::Void => Err(error::new(ErrorImpl::EndOfStream)),
             };
         }
