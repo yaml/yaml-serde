@@ -59,6 +59,10 @@ impl<'input> Loader<'input> {
             let (event, mark) = match parser.next() {
                 Ok((event, mark)) => (event, mark),
                 Err(err) => {
+                    // The parser latches into an error state, so any further
+                    // call would yield the same error forever. Drop it so the
+                    // next `next_document` returns None and iteration ends.
+                    self.parser = None;
                     document.error = Some(Error::from(err).shared());
                     return Some(document);
                 }
