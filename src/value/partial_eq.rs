@@ -1,5 +1,5 @@
-use alloc::string::String;
 use crate::Value;
+use alloc::string::String;
 
 impl PartialEq<str> for Value {
     /// Compare `str` with YAML value

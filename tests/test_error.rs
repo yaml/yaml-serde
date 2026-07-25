@@ -5,13 +5,13 @@ use serde::de::Deserialize;
 #[cfg(not(miri))]
 use serde::de::{SeqAccess, Visitor};
 use serde_derive::{Deserialize, Serialize};
-use yaml_serde::value::{Tag, TaggedValue};
-use yaml_serde::{Deserializer, Value};
 #[cfg(not(miri))]
 use std::collections::BTreeMap;
 #[cfg(not(miri))]
 use std::fmt;
 use std::fmt::Debug;
+use yaml_serde::value::{Tag, TaggedValue};
+use yaml_serde::{Deserializer, Value};
 
 fn test_error<'de, T>(yaml: &'de str, expected: &str)
 where

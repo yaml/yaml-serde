@@ -84,7 +84,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: thumbv7em-none-eabi
     - run: cargo check --no-default-features
+    - run: cargo test --no-default-features
+    # A host check still has std in the sysroot, so it would pass even if a
+    # dependency pulled std back in. Building for a target without std is what
+    # actually proves the crate is no_std.
+    - run: cargo check --no-default-features --target thumbv7em-none-eabi
 
   minimal:
     name: Minimal versions

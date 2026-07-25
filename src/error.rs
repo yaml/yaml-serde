@@ -1,9 +1,9 @@
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::sync::Arc;
 use crate::io;
 use crate::libyaml::{emitter, error as libyaml};
 use crate::path::Path;
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::sync::Arc;
 use core::error::Error as StdError;
 use core::fmt::{self, Debug, Display};
 use core::result;

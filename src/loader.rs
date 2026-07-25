@@ -1,11 +1,11 @@
-use alloc::borrow::Cow;
-use alloc::collections::BTreeMap;
-use alloc::sync::Arc;
-use alloc::vec::Vec;
 use crate::de::{Event, Progress};
 use crate::error::{self, Error, ErrorImpl, Result};
 use crate::libyaml::error::Mark;
 use crate::libyaml::parser::{Event as YamlEvent, Parser};
+use alloc::borrow::Cow;
+use alloc::collections::BTreeMap;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 
 pub(crate) struct Loader<'input> {
     parser: Option<Parser<'input>>,

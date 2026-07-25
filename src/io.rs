@@ -7,7 +7,7 @@
 //! <https://github.com/serde-rs/json/blob/master/src/io/mod.rs>
 
 #[cfg(feature = "std")]
-pub use std::io::{Error, Read, Write};
+pub use std::io::{Error, Read, Result, Write};
 
 #[cfg(feature = "std")]
 pub(crate) fn sink() -> std::io::Sink {
@@ -15,7 +15,7 @@ pub(crate) fn sink() -> std::io::Sink {
 }
 
 #[cfg(not(feature = "std"))]
-pub use self::nostd::{Error, Write};
+pub use self::nostd::{Error, Result, Write};
 
 #[cfg(not(feature = "std"))]
 pub(crate) use self::nostd::sink;
@@ -25,6 +25,7 @@ mod nostd {
     use alloc::vec::Vec;
     use core::fmt;
 
+    /// Result type returned by [`Write`]'s methods in no_std mode.
     pub type Result<T> = core::result::Result<T, Error>;
 
     /// I/O error type for no_std mode.

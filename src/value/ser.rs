@@ -1,9 +1,9 @@
-use alloc::borrow::ToOwned;
-use alloc::boxed::Box;
-use alloc::string::ToString;
 use crate::error::{self, Error, ErrorImpl};
 use crate::value::tagged::{self, MaybeTag};
 use crate::value::{to_value, Mapping, Number, Sequence, Tag, TaggedValue, Value};
+use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::string::ToString;
 use core::fmt::Display;
 use core::mem;
 use serde::ser::{self, Serialize};

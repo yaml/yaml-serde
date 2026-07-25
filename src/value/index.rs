@@ -1,7 +1,7 @@
-use alloc::borrow::ToOwned;
-use alloc::string::String;
 use crate::mapping::Entry;
 use crate::{mapping, private, Mapping, Value};
+use alloc::borrow::ToOwned;
+use alloc::string::String;
 use core::fmt::{self, Debug};
 use core::ops;
 

@@ -118,6 +118,22 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! # no_std support
+//!
+//! This crate is `no_std` and only requires a global allocator. The default
+//! `std` feature enables integration with `std::io`; disable it to build for
+//! targets without `std`:
+//!
+//! ```toml
+//! [dependencies]
+//! yaml_serde = { version = "0.10", default-features = false }
+//! ```
+//!
+//! Without the `std` feature, [`from_reader`] is unavailable, since it depends
+//! on `std::io::Read`. [`to_writer`] remains available and accepts any writer
+//! implementing the minimal [`io::Write`] trait, which this crate implements for
+//! `Vec<u8>`.
 
 #![no_std]
 #![doc(html_root_url = "https://docs.rs/yaml_serde/0.10.4")]

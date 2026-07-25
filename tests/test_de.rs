@@ -8,9 +8,9 @@
 
 use indoc::indoc;
 use serde_derive::Deserialize;
-use yaml_serde::{Deserializer, Number, Value};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
+use yaml_serde::{Deserializer, Number, Value};
 
 fn test_de<T>(yaml: &str, expected: &T)
 where
@@ -714,4 +714,57 @@ fn test_parse_number() {
 
     let err = " 1 ".parse::<Number>().unwrap_err();
     assert_eq!(err.to_string(), "failed to parse YAML number");
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn test_de_from_reader() {
+    #[derive(Deserialize, PartialEq, Debug)]
+    struct Point {
+        x: f64,
+        y: f64,
+    }
+
+    let yaml = indoc! {"
+        x: 1.0
+        y: 2.0
+    "};
+
+    let expected = Point { x: 1.0, y: 2.0 };
+    let deserialized: Point = yaml_serde::from_reader(yaml.as_bytes()).unwrap();
+    assert_eq!(expected, deserialized);
+
+    // Reader-based multi-document iteration.
+    let yaml = indoc! {"
+        ---
+        x: 1.0
+        y: 2.0
+        ---
+        x: 3.0
+        y: 4.0
+    "};
+
+    let points: Vec<Point> = Deserializer::from_reader(yaml.as_bytes())
+        .map(<Point as serde::Deserialize>::deserialize)
+        .map(Result::unwrap)
+        .collect();
+    assert_eq!(
+        vec![Point { x: 1.0, y: 2.0 }, Point { x: 3.0, y: 4.0 },],
+        points,
+    );
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn test_de_from_reader_io_error() {
+    struct FailingReader;
+
+    impl std::io::Read for FailingReader {
+        fn read(&mut self, _buf: &mut [u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::other("oh no"))
+        }
+    }
+
+    let err = yaml_serde::from_reader::<_, Value>(FailingReader).unwrap_err();
+    assert_eq!(err.to_string(), "oh no");
 }
