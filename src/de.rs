@@ -1,21 +1,19 @@
-#[cfg(feature = "std")]
-use alloc::boxed::Box;
-use alloc::sync::Arc;
-use alloc::{format, vec::Vec};
 use crate::error::{self, Error, ErrorImpl};
 use crate::libyaml::error::Mark;
 use crate::libyaml::parser::{MappingStart, Scalar, ScalarStyle, SequenceStart};
 use crate::libyaml::tag::Tag;
 use crate::loader::{Document, Loader};
 use crate::path::Path;
-use serde::de::value::StrDeserializer;
-use serde::de::{
-    self, Deserialize, DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
-};
+#[cfg(feature = "std")]
+use alloc::boxed::Box;
+use alloc::sync::Arc;
+use alloc::{format, vec::Vec};
 use core::fmt;
 use core::mem;
 use core::num::ParseIntError;
 use core::str;
+use serde::de::value::StrDeserializer;
+use serde::de::{self, Deserialize, DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor};
 
 #[cfg(feature = "std")]
 use serde::de::DeserializeOwned;
@@ -821,9 +819,7 @@ impl<'de> de::EnumAccess<'de> for UnitVariantAccess<'de, '_, '_> {
     }
 }
 
-impl<'de> de::VariantAccess<'de>
-    for UnitVariantAccess<'de, '_, '_>
-{
+impl<'de> de::VariantAccess<'de> for UnitVariantAccess<'de, '_, '_> {
     type Error = Error;
 
     fn unit_variant(self) -> Result<()> {

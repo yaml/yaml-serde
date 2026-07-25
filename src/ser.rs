@@ -2,22 +2,22 @@
 //!
 //! This module provides YAML serialization with the type `Serializer`.
 
-use alloc::borrow::ToOwned;
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
 use crate::error::{self, Error, ErrorImpl};
 use crate::io;
 use crate::libyaml;
 use crate::libyaml::emitter::{Emitter, Event, Mapping, Scalar, ScalarStyle, Sequence};
 use crate::value::tagged::{self, MaybeTag};
-use serde::de::Visitor;
-use serde::ser::{self, Serializer as _};
+use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use core::fmt::{self, Display};
 use core::marker::PhantomData;
 use core::mem;
 use core::num;
 use core::str;
+use serde::de::Visitor;
+use serde::ser::{self, Serializer as _};
 
 type Result<T, E = Error> = core::result::Result<T, E>;
 

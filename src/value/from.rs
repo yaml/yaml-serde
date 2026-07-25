@@ -1,6 +1,6 @@
+use crate::{Mapping, Value};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use crate::{Mapping, Value};
 
 // Implement a bunch of conversion to make it easier to create YAML values
 // on the fly.

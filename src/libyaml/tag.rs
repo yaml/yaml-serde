@@ -1,5 +1,5 @@
-use alloc::boxed::Box;
 use crate::libyaml::cstr;
+use alloc::boxed::Box;
 use core::fmt::{self, Debug};
 use core::ops::Deref;
 

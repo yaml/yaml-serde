@@ -1,8 +1,8 @@
-use alloc::boxed::Box;
-use alloc::string::String;
 use crate::io;
 use crate::libyaml;
 use crate::libyaml::util::Owned;
+use alloc::boxed::Box;
+use alloc::string::String;
 use core::ffi::c_void;
 use core::mem::{self, MaybeUninit};
 use core::ptr::{self, addr_of_mut};
@@ -211,7 +211,6 @@ unsafe fn write_handler(data: *mut c_void, buffer: *mut u8, size: u64) -> i32 {
         }
     }
 }
-
 
 impl Drop for EmitterPinned<'_> {
     fn drop(&mut self) {

@@ -73,9 +73,9 @@
 ///   value: 1
 /// ```
 pub mod singleton_map {
+    use crate::value::{Mapping, Sequence, Value};
     use alloc::borrow::ToOwned;
     use alloc::string::String;
-    use crate::value::{Mapping, Sequence, Value};
     use core::fmt::{self, Display};
     use serde::de::{
         self, Deserialize, DeserializeSeed, Deserializer, EnumAccess, IgnoredAny, MapAccess,
@@ -935,10 +935,10 @@ pub mod singleton_map {
 /// }
 /// ```
 pub mod singleton_map_recursive {
+    use crate::value::{Mapping, Sequence, Value};
     use alloc::borrow::ToOwned;
     use alloc::string::String;
     use alloc::vec::Vec;
-    use crate::value::{Mapping, Sequence, Value};
     use core::fmt::{self, Display};
     use serde::de::{
         self, Deserialize, DeserializeSeed, Deserializer, EnumAccess, IgnoredAny, MapAccess,

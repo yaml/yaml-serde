@@ -1,8 +1,8 @@
 //! A YAML mapping and its iterator types.
 
+use crate::{private, Value};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::{private, Value};
 use core::cmp::Ordering;
 use core::fmt::{self, Display};
 use core::hash::{Hash, Hasher};
@@ -10,18 +10,19 @@ use core::mem;
 use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer, Serialize};
 
-#[cfg(feature = "std")]
-use std::collections::hash_map::DefaultHasher;
-
 #[cfg(not(feature = "std"))]
 mod fnv {
-    use core::hash::Hasher;
+    use core::hash::{BuildHasher, Hasher};
 
+    const OFFSET_BASIS: u64 = 0xcbf2_9ce4_8422_2325;
+    const PRIME: u64 = 0x0100_0000_01b3;
+
+    /// FNV-1a, used in place of `std`'s `DefaultHasher` in no_std builds.
     pub struct FnvHasher(u64);
 
-    impl FnvHasher {
-        pub fn new() -> Self {
-            FnvHasher(0xcbf2_9ce4_8422_2325)
+    impl Default for FnvHasher {
+        fn default() -> Self {
+            FnvHasher(OFFSET_BASIS)
         }
     }
 
@@ -33,7 +34,7 @@ mod fnv {
         fn write(&mut self, bytes: &[u8]) {
             for &b in bytes {
                 self.0 ^= u64::from(b);
-                self.0 = self.0.wrapping_mul(0x0100_0000_01b3);
+                self.0 = self.0.wrapping_mul(PRIME);
             }
         }
     }
@@ -41,19 +42,29 @@ mod fnv {
     #[derive(Clone, Default)]
     pub struct FnvBuildHasher;
 
-    impl core::hash::BuildHasher for FnvBuildHasher {
+    impl FnvBuildHasher {
+        pub const fn new() -> Self {
+            FnvBuildHasher
+        }
+    }
+
+    impl BuildHasher for FnvBuildHasher {
         type Hasher = FnvHasher;
         fn build_hasher(&self) -> FnvHasher {
-            FnvHasher::new()
+            FnvHasher::default()
         }
     }
 }
 
+// The hasher used for `Mapping`'s IndexMap, and the one used to hash individual
+// entries in the order-independent `Hash` impl below.
 #[cfg(feature = "std")]
-type MapImpl = IndexMap<Value, Value>;
+use std::collections::hash_map::{DefaultHasher as EntryHasher, RandomState as MapHasher};
 
 #[cfg(not(feature = "std"))]
-type MapImpl = IndexMap<Value, Value, fnv::FnvBuildHasher>;
+use self::fnv::{FnvBuildHasher as MapHasher, FnvHasher as EntryHasher};
+
+type MapImpl = IndexMap<Value, Value, MapHasher>;
 
 /// A YAML mapping in which the keys and values are both `yaml_serde::Value`.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -72,10 +83,7 @@ impl Mapping {
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Mapping {
-            #[cfg(feature = "std")]
-            map: IndexMap::with_capacity(capacity),
-            #[cfg(not(feature = "std"))]
-            map: IndexMap::with_capacity_and_hasher(capacity, fnv::FnvBuildHasher),
+            map: IndexMap::with_capacity_and_hasher(capacity, MapHasher::new()),
         }
     }
 
@@ -438,10 +446,7 @@ impl Hash for Mapping {
         // Hash the kv pairs in a way that is not sensitive to their order.
         let mut xor = 0;
         for (k, v) in self {
-            #[cfg(feature = "std")]
-            let mut hasher = DefaultHasher::new();
-            #[cfg(not(feature = "std"))]
-            let mut hasher = fnv::FnvHasher::new();
+            let mut hasher = EntryHasher::default();
             k.hash(&mut hasher);
             v.hash(&mut hasher);
             xor ^= hasher.finish();
