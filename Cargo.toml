@@ -16,7 +16,7 @@ default = ["std"]
 std = ["serde/std", "indexmap/std"]
 
 [dependencies]
-indexmap = { version = "2.2.1", default-features = false }
+indexmap = { version = ">=2.2.1, <2.14", default-features = false }
 itoa = "1.0"
 ryu = "1.0"
 serde = { version = "1.0.195", default-features = false, features = ["alloc"] }
