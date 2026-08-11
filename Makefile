@@ -39,7 +39,7 @@ $(CARGO-TARGETS): $(CARGO)
 release: $(RELEASE-STEPS)
 
 release-publish: $(CARGO) $(YS)
-	CARGO_TOKEN=$$(ys -e '.crates.token:say' $(SECRETS-FILE)) && \
+	CARGO_TOKEN=$$(ys -e '.rust.token:say' $(SECRETS-FILE)) && \
 	  $(CARGO) publish --token "$$CARGO_TOKEN"
 
 release-check:
