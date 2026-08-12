@@ -31,6 +31,9 @@ jobs:
     - uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{matrix.rust}}
+    - name: Select dependencies compatible with Rust 1.82
+      if: matrix.rust == '1.82.0'
+      run: cargo update -p indexmap --precise 2.13.1
     - name: Enable type layout randomization
       run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
       if: matrix.rust == 'nightly'
