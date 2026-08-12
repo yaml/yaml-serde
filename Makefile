@@ -14,7 +14,6 @@ MAKES-CLEAN := \
 CARGO-TARGETS := \
   build \
   check \
-  clippy \
   install \
   test \
   uninstall \
@@ -35,6 +34,12 @@ RELEASE-STEPS := \
 
 $(CARGO-TARGETS): $(CARGO)
 	cargo $@ $(opts)
+
+clippy: $(CARGO)
+	rustup toolchain install nightly --component clippy \
+	  --profile minimal --allow-downgrade --no-self-update
+	RUSTFLAGS=-Dwarnings cargo +nightly clippy --tests -- \
+	  -Dclippy::all -Dclippy::pedantic
 
 release: $(RELEASE-STEPS)
 
