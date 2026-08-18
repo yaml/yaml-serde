@@ -187,8 +187,8 @@ impl ErrorImpl {
 
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            ErrorImpl::Io(err) => err.source(),
-            ErrorImpl::FromUtf8(err) => err.source(),
+            ErrorImpl::Io(err) => Some(err),
+            ErrorImpl::FromUtf8(err) => Some(err),
             ErrorImpl::Shared(err) => err.source(),
             _ => None,
         }

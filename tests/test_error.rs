@@ -498,3 +498,31 @@ fn test_duplicate_keys() {
     let expected = "duplicate entry in YAML map at line 2 column 1";
     test_error::<Value>(yaml, expected);
 }
+
+#[cfg(feature = "std")]
+#[test]
+fn test_io_error_source() {
+    use std::error::Error as StdError;
+    use std::io;
+
+    struct BadReader;
+
+    impl io::Read for BadReader {
+        fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+            Err(io::ErrorKind::PermissionDenied.into())
+        }
+    }
+
+    let err = yaml_serde::from_reader::<_, Value>(BadReader).unwrap_err();
+    let source = StdError::source(&err).expect("should have a source");
+    let source = source.downcast_ref::<io::Error>().unwrap();
+    assert_eq!(io::ErrorKind::PermissionDenied, source.kind());
+
+    let err = yaml_serde::from_reader::<_, Value>(BadReader).unwrap_err();
+    let err = anyhow::Error::new(err);
+    let source = err
+        .chain()
+        .find_map(|source| source.downcast_ref::<io::Error>())
+        .expect("should contain source");
+    assert_eq!(io::ErrorKind::PermissionDenied, source.kind());
+}
