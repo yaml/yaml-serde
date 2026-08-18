@@ -136,7 +136,7 @@
 //! `Vec<u8>`.
 
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/yaml_serde/0.10.6")]
+#![doc(html_root_url = "https://docs.rs/yaml_serde/0.10.7")]
 #![deny(missing_docs, unsafe_op_in_unsafe_fn)]
 // Suppressed clippy_pedantic lints
 #![allow(
