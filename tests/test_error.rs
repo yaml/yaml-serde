@@ -159,6 +159,25 @@ fn test_second_document_syntax_error() {
 }
 
 #[test]
+fn test_syntax_error_terminates_iteration() {
+    // Malformed input must not loop forever when iterating documents.
+    // Regression test: the libyaml parser latches into an error state, so the
+    // loader has to stop after yielding the error document once.
+    let yaml = "app: {apikey";
+
+    let mut documents = 0;
+    let mut last_error = None;
+    for document in Deserializer::from_str(yaml) {
+        documents += 1;
+        last_error = Value::deserialize(document).err();
+        assert!(documents <= 1, "iteration did not terminate on bad input");
+    }
+
+    assert_eq!(documents, 1);
+    assert!(last_error.is_some());
+}
+
+#[test]
 fn test_missing_enum_tag() {
     #[derive(Deserialize, Debug)]
     pub enum E {
