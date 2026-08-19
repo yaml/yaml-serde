@@ -209,6 +209,8 @@ mod ser;
 pub mod value;
 pub mod with;
 
+const RECURSION_DEPTH_LIMIT: usize = 128;
+
 // Prevent downstream code from implementing the Index trait.
 mod private {
     use alloc::string::String;

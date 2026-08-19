@@ -57,6 +57,8 @@ impl<'input> Loader<'input> {
             aliases: BTreeMap::new(),
         };
 
+        let mut depth = 0;
+
         loop {
             let (event, mark) = match parser.next() {
                 Ok((event, mark)) => (event, mark),
@@ -96,6 +98,12 @@ impl<'input> Loader<'input> {
                     Event::Scalar(scalar)
                 }
                 YamlEvent::SequenceStart(mut sequence_start) => {
+                    depth += 1;
+                    if depth > crate::RECURSION_DEPTH_LIMIT {
+                        document.error =
+                            Some(error::new(ErrorImpl::RecursionLimitExceeded(mark)).shared());
+                        return Some(document);
+                    }
                     if let Some(anchor) = sequence_start.anchor.take() {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
@@ -103,8 +111,17 @@ impl<'input> Loader<'input> {
                     }
                     Event::SequenceStart(sequence_start)
                 }
-                YamlEvent::SequenceEnd => Event::SequenceEnd,
+                YamlEvent::SequenceEnd => {
+                    depth = depth.saturating_sub(1);
+                    Event::SequenceEnd
+                }
                 YamlEvent::MappingStart(mut mapping_start) => {
+                    depth += 1;
+                    if depth > crate::RECURSION_DEPTH_LIMIT {
+                        document.error =
+                            Some(error::new(ErrorImpl::RecursionLimitExceeded(mark)).shared());
+                        return Some(document);
+                    }
                     if let Some(anchor) = mapping_start.anchor.take() {
                         let id = anchors.len();
                         anchors.insert(anchor, id);
@@ -112,7 +129,10 @@ impl<'input> Loader<'input> {
                     }
                     Event::MappingStart(mapping_start)
                 }
-                YamlEvent::MappingEnd => Event::MappingEnd,
+                YamlEvent::MappingEnd => {
+                    depth = depth.saturating_sub(1);
+                    Event::MappingEnd
+                }
             };
             document.events.push((event, mark));
         }

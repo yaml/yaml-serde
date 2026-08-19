@@ -114,7 +114,7 @@ impl<'de> Deserializer<'de> {
                     pos: &mut pos,
                     jumpcount: &mut jumpcount,
                     path: Path::Root,
-                    remaining_depth: 128,
+                    remaining_depth: crate::RECURSION_DEPTH_LIMIT as u8,
                     current_enum: None,
                 })?;
                 if let Some(parse_error) = document.error {
@@ -134,7 +134,7 @@ impl<'de> Deserializer<'de> {
             pos: &mut pos,
             jumpcount: &mut jumpcount,
             path: Path::Root,
-            remaining_depth: 128,
+            remaining_depth: crate::RECURSION_DEPTH_LIMIT as u8,
             current_enum: None,
         })?;
         if let Some(parse_error) = document.error {
