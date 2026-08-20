@@ -328,6 +328,8 @@ impl<'de> Deserializer<'de> for Value {
     {
         match self.untag() {
             Value::String(v) => visitor.visit_string(v),
+            Value::Number(v) => visitor.visit_string(v.to_string()),
+            Value::Bool(v) => visitor.visit_string(v.to_string()),
             other => Err(other.invalid_type(&visitor)),
         }
     }
@@ -838,6 +840,8 @@ impl<'de> Deserializer<'de> for &'de Value {
     {
         match self.untag_ref() {
             Value::String(v) => visitor.visit_borrowed_str(v),
+            Value::Number(v) => visitor.visit_string(v.to_string()),
+            Value::Bool(v) => visitor.visit_string(v.to_string()),
             other => Err(other.invalid_type(&visitor)),
         }
     }
