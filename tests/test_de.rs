@@ -7,7 +7,7 @@
 )]
 
 use indoc::indoc;
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use yaml_serde::{Deserializer, Number, Value};

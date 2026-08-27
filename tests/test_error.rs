@@ -1,10 +1,9 @@
 #![allow(clippy::zero_sized_map_values)]
 
 use indoc::indoc;
-use serde::de::Deserialize;
 #[cfg(not(miri))]
 use serde::de::{SeqAccess, Visitor};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 #[cfg(not(miri))]
 use std::collections::BTreeMap;
 #[cfg(not(miri))]
