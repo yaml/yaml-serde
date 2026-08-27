@@ -186,6 +186,9 @@ extern crate std;
 
 extern crate alloc;
 
+// Use `serde` name even if we actually use `serde_core`
+extern crate serde_core as serde;
+
 #[cfg(feature = "std")]
 pub use crate::de::from_reader;
 pub use crate::de::{from_slice, from_str, Deserializer};

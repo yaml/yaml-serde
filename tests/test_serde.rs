@@ -7,7 +7,7 @@
 
 use indoc::indoc;
 use serde::ser::SerializeMap;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::iter;

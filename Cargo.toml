@@ -13,19 +13,19 @@ rust-version = "1.82"
 
 [features]
 default = ["std"]
-std = ["serde/std", "indexmap/std"]
+std = ["serde_core/std", "indexmap/std"]
 
 [dependencies]
 indexmap = { version = "2.2.1", default-features = false }
 itoa = "1.0"
 ryu = "1.0"
-serde = { version = "1.0.195", default-features = false, features = ["alloc"] }
+serde_core = { version = "1.0.195", default-features = false, features = ["alloc"] }
 libyaml-rs = "0.3"
 
 [dev-dependencies]
 anyhow = "1.0.79"
 indoc = "2.0"
-serde_derive = "1.0.195"
+serde = { version = "1.0.195", features = ["derive"] }
 
 [lib]
 doc-scrape-examples = false
