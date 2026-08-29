@@ -507,6 +507,7 @@ fn test_ignore_tag() {
         newtype: Newtype,
         map: BTreeMap<char, usize>,
         vec: Vec<usize>,
+        var: Vec<VariantEnum>,
     }
 
     #[derive(Deserialize, Debug, PartialEq)]
@@ -520,6 +521,14 @@ fn test_ignore_tag() {
     #[derive(Deserialize, Debug, PartialEq)]
     struct Newtype(usize);
 
+    #[derive(Deserialize, Debug, PartialEq)]
+    enum VariantEnum {
+        One,
+        Two,
+        Three,
+        Four,
+    }
+
     let yaml = indoc! {"
         struc: !wat
           x: 0
@@ -531,6 +540,11 @@ fn test_ignore_tag() {
           x: 0
         vec: !wat
           - 0
+        var:
+          - One
+          - !!str Two
+          - !<tag:yaml.org,2002:seq> Three
+          - ! Four
     "};
 
     let expected = Data {
@@ -543,6 +557,12 @@ fn test_ignore_tag() {
             map
         },
         vec: vec![0],
+        var: vec![
+            VariantEnum::One,
+            VariantEnum::Two,
+            VariantEnum::Three,
+            VariantEnum::Four,
+        ],
     };
 
     test_de(yaml, &expected);
