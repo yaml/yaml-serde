@@ -1191,6 +1191,10 @@ fn invalid_type(event: &Event, exp: &dyn Expected) -> Error {
 
 fn parse_tag(libyaml_tag: Option<&Tag>) -> Option<&str> {
     let mut bytes: &[u8] = libyaml_tag?;
+    // The ! tag on its own is the non-specific tag
+    if bytes == b"!" {
+        return None;
+    }
     if let (b'!', rest) = bytes.split_first()? {
         if !rest.is_empty() {
             bytes = rest;
