@@ -89,7 +89,7 @@ impl<'input> Loader<'input> {
                 },
                 YamlEvent::Scalar(mut scalar) => {
                     if let Some(anchor) = scalar.anchor.take() {
-                        let id = anchors.len();
+                        let id = document.aliases.len();
                         anchors.insert(anchor, id);
                         document.aliases.insert(id, document.events.len());
                     }
@@ -97,7 +97,7 @@ impl<'input> Loader<'input> {
                 }
                 YamlEvent::SequenceStart(mut sequence_start) => {
                     if let Some(anchor) = sequence_start.anchor.take() {
-                        let id = anchors.len();
+                        let id = document.aliases.len();
                         anchors.insert(anchor, id);
                         document.aliases.insert(id, document.events.len());
                     }
@@ -106,7 +106,7 @@ impl<'input> Loader<'input> {
                 YamlEvent::SequenceEnd => Event::SequenceEnd,
                 YamlEvent::MappingStart(mut mapping_start) => {
                     if let Some(anchor) = mapping_start.anchor.take() {
-                        let id = anchors.len();
+                        let id = document.aliases.len();
                         anchors.insert(anchor, id);
                         document.aliases.insert(id, document.events.len());
                     }
