@@ -87,6 +87,106 @@ fn test_alias() {
 }
 
 #[test]
+fn test_nonunique_alias_numbers() {
+    let yaml = indoc! {"
+        first:
+          &alias
+          1
+        second:
+          *alias
+        third:
+         &alias
+          3
+        fourth:
+          *alias
+        fifth:
+         &alias
+          5
+    "};
+
+    let mut expected = BTreeMap::new();
+    expected.insert("first".to_owned(), 1);
+    expected.insert("second".to_owned(), 1);
+    expected.insert("third".to_owned(), 3);
+    expected.insert("fourth".to_owned(), 3);
+    expected.insert("fifth".to_owned(), 5);
+    test_de(yaml, &expected);
+}
+
+#[test]
+fn test_nonunique_alias_seq_numbers() {
+    let yaml = indoc! {"
+        first:
+          &alias
+          [1]
+        second:
+          *alias
+        third:
+         &alias
+          [3, 4]
+        fourth:
+          *alias
+        fifth:
+         &alias
+          [5, 6]
+    "};
+
+    let mut exp1 = yaml_serde::Sequence::new();
+    exp1.push(Value::Number(Number::from(1)));
+    let mut exp3 = yaml_serde::Sequence::new();
+    exp3.push(Value::Number(Number::from(3)));
+    exp3.push(Value::Number(Number::from(4)));
+    let mut exp5 = yaml_serde::Sequence::new();
+    exp5.push(Value::Number(Number::from(5)));
+    exp5.push(Value::Number(Number::from(6)));
+
+    let mut expected = BTreeMap::new();
+    expected.insert("first".to_owned(), exp1.to_owned());
+    expected.insert("second".to_owned(), exp1.to_owned());
+    expected.insert("third".to_owned(), exp3.to_owned());
+    expected.insert("fourth".to_owned(), exp3.to_owned());
+    expected.insert("fifth".to_owned(), exp5.to_owned());
+    test_de(yaml, &expected);
+}
+
+
+#[test]
+fn test_nonunique_alias_seq_strings() {
+    let yaml = indoc! {"
+        first:
+          &alias
+          [one]
+        second:
+          *alias
+        third:
+         &alias
+          [three, four]
+        fourth:
+          *alias
+        fifth:
+         &alias
+          [five, six]
+    "};
+
+    let mut exp1 = yaml_serde::Sequence::new();
+    exp1.push(Value::String("one".to_owned()));
+    let mut exp3 = yaml_serde::Sequence::new();
+    exp3.push(Value::String(String::from("three")));
+    exp3.push(Value::String(String::from("four")));
+    let mut exp5 = yaml_serde::Sequence::new();
+    exp5.push(Value::String(String::from("five")));
+    exp5.push(Value::String(String::from("six")));
+
+    let mut expected = BTreeMap::new();
+    expected.insert("first".to_owned(), exp1.to_owned());
+    expected.insert("second".to_owned(), exp1.to_owned());
+    expected.insert("third".to_owned(), exp3.to_owned());
+    expected.insert("fourth".to_owned(), exp3.to_owned());
+    expected.insert("fifth".to_owned(), exp5.to_owned());
+    test_de(yaml, &expected);
+}
+
+#[test]
 fn test_option() {
     #[derive(Deserialize, PartialEq, Debug)]
     struct Data {
